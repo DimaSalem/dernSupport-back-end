@@ -39,7 +39,7 @@ const generateToken = (id) => {
 //Not route
 // Sending email to customer account to verify his email
 const sendEmail = async (Email, token) => {
-  const verificationLink = `http://localhost:${process.env.PORT}/customers/verify-email?token=${token}`;
+  const verificationLink = `https://back-end-st2z.onrender.com/customers/verify-email?token=${token}`;
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
   const msg = {
     to: Email,
@@ -83,7 +83,7 @@ export const customerVerifyEmail = async (req, res) => {
       userId,
     ]);
 
-    res.redirect(302, "http://localhost:5173/verify-email");
+    res.redirect(302, "https://dern-support-three.vercel.app/verify-email");
     // res.status(200).json({
     //   success: true,
     //   message: "Email verified successfully.",
