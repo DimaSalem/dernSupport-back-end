@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken";
 import { io } from "../server.js";
 import { v4 as uuidv4 } from "uuid";
 
-
 export const getTechnicainName = async (req, res) => {
   const TechnicianId = req.userId;
   try {
@@ -14,7 +13,7 @@ export const getTechnicainName = async (req, res) => {
       );`,
       [TechnicianId]
     );
-    
+
     res.json(result.rows[0].name);
   } catch (err) {
     console.error("Get technician name error:", err);
@@ -55,7 +54,7 @@ async function updateTechnicianAvailability(technicianId, maintenanceTime) {
     const currentDate = new Date();
     if (currentAvailability < currentDate) {
       currentAvailability = currentDate;
-  }
+    }
 
     let hoursToAdd = maintenanceTime;
 
@@ -102,7 +101,6 @@ async function updateTechnicianAvailability(technicianId, maintenanceTime) {
   }
 }
 
-
 //=============================/technician/login=========================================
 // /technician/login
 // Tested
@@ -124,9 +122,7 @@ export const technicianLogin = async (req, res) => {
     WHERE "User".email = $1;`,
       [Email]
     );
-  
-    
-    
+
     // check if the technician is exist or not
     if (result.rows.length === 0) {
       return res.status(401).json({ error: "Technician not found :(" });
@@ -170,7 +166,7 @@ export const updateAssignedRequest = async (req, res) => {
   const TechnicianId = req.userId;
   //if it is NewRequest send MaintenanceTime
   //if it is ServiceRequest get MaintenanceTime from service table
-  let { MaintenanceTime, RequestId } = req.body;  
+  let { MaintenanceTime, RequestId } = req.body;
   try {
     let result1 = await client.query(
       `SELECT RequestType FROM Request WHERE id= $1`,
@@ -185,17 +181,13 @@ export const updateAssignedRequest = async (req, res) => {
         [RequestId]
       );
       MaintenanceTime = result1.rows[0].maintenancetime;
-    }
-    else{
-
-      
-        result1 = await client.query(
-          `update newrequest  
+    } else {
+      result1 = await client.query(
+        `update newrequest  
           set MaintenanceTime=$1
             WHERE RequestID = $2;`,
-           [MaintenanceTime,RequestId]
-        );
-     
+        [MaintenanceTime, RequestId]
+      );
     }
 
     //  Update technician's availability after updating request by technician
@@ -214,16 +206,17 @@ export const updateAssignedRequest = async (req, res) => {
       request: result.rows[0],
     });
     io.emit("newRequest", {
-      role: "admin",  
+      role: "admin",
       id: uuidv4(),
-      message: " Request has been Update by the technician. Please review the order log."
+      message:
+        " Request has been Update by the technician. Please review the order log.",
     });
     io.emit("newRequest", {
-      role: "customers",  
+      role: "customers",
       id: uuidv4(),
-      message: " Request has been Update by the technician. Please review your requests."
+      message:
+        " Request has been Update by the technician. Please review your requests.",
     });
-    
   } catch (err) {
     console.error("Update Request error:", err);
     res.status(500).json({ error: "Failed to update Request" });
@@ -259,14 +252,16 @@ export const updateCompletedRequest = async (req, res) => {
       request: result.rows[0],
     });
     io.emit("newRequest", {
-      role: "admin",  
+      role: "admin",
       id: uuidv4(),
-      message: " Request has been Updated by the technician. Please review the order log."
+      message:
+        " Request has been Updated by the technician. Please review the order log.",
     });
     io.emit("newRequest", {
-      role: "customers",  
+      role: "customers",
       id: uuidv4(),
-      message: " Request has been Updated by the technician. Please review your requests."
+      message:
+        " Request has been Updated by the technician. Please review your requests.",
     });
   } catch (err) {
     console.error("Update Request error:", err);
@@ -288,50 +283,46 @@ export const GetAssignedRequests = async (req, res) => {
   //   console.error("Get assigned request error:", err);
   //   res.status(500).json({ error: "Failed to get assigned request" });
   // }
-    const TechnicianId = req.userId; // from middleware
-    try {
-      // select the Status, EstimatedTime, and RequestType from the Request table
-      const requestResult = await client.query(
-        `
+  const TechnicianId = req.userId; // from middleware
+  try {
+    // select the Status, EstimatedTime, and RequestType from the Request table
+    const requestResult = await client.query(
+      `
         SELECT ID, Status, CreatedDate, RequestType 
         FROM Request 
         WHERE TechnicianID = $1;
       `,
-        [TechnicianId]
-      );
-  
-      //Store the response object
-      const requests = requestResult.rows;
-      
-      // THis array to store the final results and send it to frontend based on RequestType
-      const results = [];
-  
-      // Loop on each request to get more info(Title & ActualCost ) based on RequestType
-      for (const request of requests) {
-        
-        let detailResult; //to store more info
-        let feedbackId=null;
-        let serviceId;
-        //Case 1:
-        if (request.requesttype == "NewRequest") {
-          
-          // Fetch Title and ActualCost from NewRequest table
-          detailResult = await client.query(
-            `
+      [TechnicianId]
+    );
+
+    //Store the response object
+    const requests = requestResult.rows;
+
+    // THis array to store the final results and send it to frontend based on RequestType
+    const results = [];
+
+    // Loop on each request to get more info(Title & ActualCost ) based on RequestType
+    for (const request of requests) {
+      let detailResult; //to store more info
+      let feedbackId = null;
+      let serviceId;
+      //Case 1:
+      if (request.requesttype == "NewRequest") {
+        // Fetch Title and ActualCost from NewRequest table
+        detailResult = await client.query(
+          `
             SELECT Title, IssueDescription
             FROM NewRequest 
             WHERE RequestID = $1;
           `,
-            [request.id]
-          );
-  
-          
-        }
-        //Case 2:
-        else {
-          // Fetch Title and ActualCost from Service table
-          detailResult = await client.query(
-            `
+          [request.id]
+        );
+      }
+      //Case 2:
+      else {
+        // Fetch Title and ActualCost from Service table
+        detailResult = await client.query(
+          `
             SELECT Title, IssueDescription
             FROM Service 
             WHERE ID = (
@@ -340,38 +331,37 @@ export const GetAssignedRequests = async (req, res) => {
               WHERE RequestID = $1
             );
           `,
-            [request.id]
-          );
-          
-        }
-  
-        const hasData = detailResult && detailResult.rows.length > 0;
-          // Push the title and actual cost to the results array
-          
-          // results.push({
-          //   id:request.id,
-          //   description:hasData?detailResult.rows[0].issuedescription:null,
-          //   status: request.status,
-          //   createddate: request.createddate,
-          //   requestType: request.requesttype,
-          //   title:  hasData? detailResult.rows[0].title:null,
-          // });
-          results.push({
-            id: request.id,
-            description: hasData ? detailResult.rows[0].issuedescription : null,
-            status: request.status,
-            createddate: request.createddate,
-            requestType: request.requesttype,
-            title: hasData ? detailResult.rows[0].title : null,
-        });
+          [request.id]
+        );
       }
-  
-      // Send the final results to the technician
-      res.status(200).json(results);
-    } catch (error) {
-      console.error("Error executing query", error.stack);
-      res.status(500).json({ error: "Internal server error" });
+
+      const hasData = detailResult && detailResult.rows.length > 0;
+      // Push the title and actual cost to the results array
+
+      // results.push({
+      //   id:request.id,
+      //   description:hasData?detailResult.rows[0].issuedescription:null,
+      //   status: request.status,
+      //   createddate: request.createddate,
+      //   requestType: request.requesttype,
+      //   title:  hasData? detailResult.rows[0].title:null,
+      // });
+      results.push({
+        id: request.id,
+        description: hasData ? detailResult.rows[0].issuedescription : null,
+        status: request.status,
+        createddate: request.createddate,
+        requestType: request.requesttype,
+        title: hasData ? detailResult.rows[0].title : null,
+      });
     }
+
+    // Send the final results to the technician
+    res.status(200).json(results);
+  } catch (error) {
+    console.error("Error executing query", error.stack);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
 
 //=============================/technician/send-report========================================
@@ -404,11 +394,11 @@ export const SendReport = async (req, res) => {
     }
     res.json({ message: "Report Sent Successfully" });
     io.emit("newRequest", {
-      role: "admin",  
+      role: "admin",
       id: uuidv4(),
-      message: " Report has been Sended by the technician. Please review the Reports log."
+      message:
+        " Report has been Sended by the technician. Please review the Reports log.",
     });
- 
   } catch (err) {
     console.error("Send report error:", err);
     res.status(500).json({ error: "Failed to send report" });

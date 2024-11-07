@@ -20,7 +20,6 @@ const PORT = process.env.PORT || 5000;
 const { Client } = pg;
 const client = new Client(pgUrl);
 
-
 const app = express();
 
 // Create HTTP Server using with Socket.io
@@ -28,21 +27,21 @@ const server = http.createServer(app);
 //Allow access from any source (make sure to set this value when using in production)
 const io = new Server(server, {
   cors: {
-    origin: "*", 
+    origin: "*",
   },
 });
 
 app.use(cors());
 app.use(express.json());
 
-//Image 
+//Image
 app.use("/image", express.static("upload/images"));
 //ROUTES:
 app.use("/admin", adminRoutes);
 app.use("/customers", customerRoutes);
-app.use("/technician",technicianRoutes);
+app.use("/technician", technicianRoutes);
 app.use("/common", commonRoutes);
-app.use("/test",testRoute)
+app.use("/test", testRoute);
 
 // connect Socket.io for notifications
 io.on("connection", (socket) => {
@@ -66,6 +65,4 @@ client
     console.error("Failed to start server:", err);
   });
 
-export { client, io }; 
-
-
+export { client, io };

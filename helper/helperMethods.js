@@ -37,13 +37,13 @@ export const assignTechnician = async (requestCategory) => {
     //   [technicianId, requestId]
     // );
     io.emit("newRequest", {
-      role: "technician",  
+      role: "technician",
       id: uuidv4(),
-      message: "A new request has been submitted by the customer. Please review the order log."
+      message:
+        "A new request has been submitted by the customer. Please review the order log.",
     });
-    
+
     return technicianId;
-    
   } catch (error) {
     console.error("Error assigning technician", error.stack);
     throw new Error("Technician assignment failed");
@@ -84,8 +84,9 @@ export const generateEstimates = async (category) => {
   }
 
   const technician = result.rows[0];
-  const estimatedCompletionTime = technician.availability;//""
+  const estimatedCompletionTime = technician.availability; //""
 
+  console.log(estimatedCompletionTime);
   return { estimatedCost, estimatedCompletionTime };
 };
 
