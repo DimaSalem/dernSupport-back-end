@@ -378,7 +378,7 @@ export const customerGetAllRequests = async (req, res) => {
       let feedbackId = null;
       let serviceId;
       //Case 1:
-      if (request.requesttype == "NewRequest") {
+      if (request.requesttype === "NewRequest") {
         console.log("from new request");
 
         // Fetch Title and ActualCost from NewRequest table
@@ -392,7 +392,7 @@ export const customerGetAllRequests = async (req, res) => {
         );
       }
       //Case 2:
-      else if (request.requesttype == "ServiceRequest") {
+      else if (request.requesttype === "ServiceRequest") {
         // Fetch Title and ActualCost from Service table
 
         detailResult = await client.query(
@@ -407,19 +407,20 @@ export const customerGetAllRequests = async (req, res) => {
         `,
           [request.id]
         );
+        if (detailResult.rows.length > 0) {
+          serviceId = detailResult.rows[0].id;
 
-        serviceId = detailResult.rows[0].id;
-
-        feedbackId = (
-          await client.query(
-            `
-          SELECT ID 
-          FROM Feedback
-          WHERE ServiceID = $1;
-          `,
-            [serviceId]
-          )
-        )?.rows[0]?.id;
+          feedbackId = (
+            await client.query(
+              `
+    SELECT ID 
+    FROM Feedback
+    WHERE ServiceID = $1;
+    `,
+              [serviceId]
+            )
+          )?.rows[0]?.id;
+        }
       }
 
       // console.log(detailResult);

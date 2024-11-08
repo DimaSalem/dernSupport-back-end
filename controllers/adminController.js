@@ -73,17 +73,16 @@ export const updateSupportRequestStatus = async (req, res) => {
   try {
     const result = await client.query(sql, values);
     console.log("  Result", result);
-    if (result.rowCount > 0){
+    if (result.rowCount > 0) {
       res.json({ message: "Support request updated", request: result.rows[0] });
-    
-     
-    io.emit("newRequest", {
-      role: "customers",  
-      id: uuidv4(),
-      message: " Request has been Update by the admin. Please review your requests."
-    });
-    }
-    else res.json({ message: "Something went wrong" });
+
+      io.emit("newRequest", {
+        role: "customers",
+        id: uuidv4(),
+        message:
+          " Request has been Update by the admin. Please review your requests.",
+      });
+    } else res.json({ message: "Something went wrong" });
   } catch (err) {
     console.error("Update support request error:", err);
     res.status(500).json({ error: "Failed to update request" });
@@ -101,17 +100,16 @@ export const updateSupportRequestTimeAndCost = async (req, res) => {
   try {
     const result = await client.query(sql, values);
     console.log("  Result", result);
-    if (result.rowCount > 0){
+    if (result.rowCount > 0) {
       res.json({ message: "Support request updated", request: result.rows[0] });
-   
+
       io.emit("newRequest", {
-        role: "customers",  
+        role: "customers",
         id: uuidv4(),
-        message: " Request has been Update by the admin. Please review your requests."
+        message:
+          " Request has been Update by the admin. Please review your requests.",
       });
-    
-    }
-    else res.json({ message: "Something went wrong" });
+    } else res.json({ message: "Something went wrong" });
   } catch (err) {
     console.error("Update support request error:", err);
     res.status(500).json({ error: "Failed to update request" });
@@ -128,8 +126,8 @@ export const getAllRequests = async (req, res) => {
   // const sql = `SELECT *
   //  FROM request
   //  LEFT JOIN newrequest ON request.id = newrequest.requestid;`;
- 
-      const sql = `
+
+  const sql = `
       SELECT  request.id, "User".name, "User".email, "User".phonenumber,request.customerId,
       request.status, request.devicedeliverymethod, request.createddate, request.requesttype, request.actualtime, request.estimatedtime,
       newrequest.issuedescription, newrequest.title, newrequest.category, newrequest.estimatedcost, newrequest.maintenancetime, newrequest.image, newrequest.actualcost
@@ -140,16 +138,15 @@ export const getAllRequests = async (req, res) => {
       WHERE request.requesttype = 'NewRequest';
       `;
 
-      try {
-        const result = await client.query(sql);
-       // console.log("QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQq ", result);
-        res.json(result.rows);
-      } catch (err) {
-        console.error("Get all requests error:", err);
-        res.status(500).json({ error: "Failed to fetch requests" });
-      }
-
-}
+  try {
+    const result = await client.query(sql);
+    // console.log("QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQq ", result);
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Get all requests error:", err);
+    res.status(500).json({ error: "Failed to fetch requests" });
+  }
+};
 
 //=============================/admin/support-requests/requestsPerDay========================================
 // /admin/support-requests/requestsPerDay
@@ -272,9 +269,10 @@ export const addArticle = async (req, res) => {
       console.log("Inserted row:", result.rows[0]);
 
       io.emit("newRequest", {
-        role: "customers",  
+        role: "customers",
         id: uuidv4(),
-        message: " Articale has been added by the admin. Please review the Articals Page."
+        message:
+          " Articale has been added by the admin. Please review the Articals Page.",
       });
     }
   } catch (err) {
@@ -427,11 +425,11 @@ export const reorderSpares = async (req, res) => {
     const result = await client.query(sql, values);
     res.json({ message: "Spares reordered", spare: result.rows[0] });
     io.emit("newRequest", {
-      role: "technician",  
+      role: "technician",
       id: uuidv4(),
-      message: " spare has been reorderd by the admin. Please check the spares log."
+      message:
+        " spare has been reorderd by the admin. Please check the spares log.",
     });
-   
   } catch (err) {
     console.error("Reorder spares error:", err);
     res.status(500).json({ error: "Failed to reorder spares" });
@@ -459,44 +457,43 @@ export const addService = async (req, res) => {
     imgUrl = `${filename}`;
   }
 
-   const sql = `INSERT INTO Service (customerId, title, category, actualcost, maintenanceTime, image, isCommon, issueDescription) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;`;
+  const values1 = [
+    customerId,
+    title,
+    category,
+    actualcost,
+    maintenanceTime,
+    imgUrl,
+    isCommon,
+    issueDescription,
+  ];
 
-   const values = [
-     customerId,
-     title,
-     category,
-   actualcost,
-     maintenanceTime,
-     imgUrl,
-     isCommon,
-     issueDescription,
-   ];
+  const sql1 = `INSERT INTO Service (customerId, title, category, actualcost, maintenanceTime, image, isCommon, issueDescription) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;`;
 
   try {
-       const fetchCustomer = await client.query(
-        `SELECT * FROM Customer WHERE userid = $1`,
-       [customerId]
-     );
+    const fetchCustomer = await client.query(
+      `SELECT * FROM Customer WHERE ID = $1`,
+      [customerId]
+    );
 
-     if (fetchCustomer.rowCount > 0) {
-       const result = await client.query(sql, values);
-        res.json({ message: "Service added", serviceId: result.rows[0].id });
-      } else {
-        res.json({ message: "Customer not found" });
-      }
-    console.log('customerId: '+customerId+' /^/^/^/^/^/^/^/^/^/^/^/^/^/^');
-    
+    if (fetchCustomer.rowCount > 0) {
+      const result = await client.query(sql1, values1);
+      res.json({ message: "Service added", serviceId: result.rows[0].id });
+    } else {
+      res.json({ message: "Customer not found" });
+    }
+    console.log("customerId: " + customerId + " /^/^/^/^/^/^/^/^/^/^/^/^/^/^");
+
     //step 1: change RequestType of the request into "ServiceRequest"
     const changeRequestType = await client.query(
       `update Request set RequestType='ServiceRequest' 
       WHERE CustomerID = $1 RETURNING ID;`,
       [customerId]
     );
-    console.log('changeRequestType.rows[0]: '+changeRequestType.rows[0])
+    console.log("changeRequestType.rows[0]: " + changeRequestType.rows[0]);
     const requestId = changeRequestType.rows[0].id;
 
-    console.log('requestId: '+requestId+'  &^&^&^&^&^&^&^&^&^&^&^&^&^&^');
-    
+    console.log("requestId: " + requestId + "  &^&^&^&^&^&^&^&^&^&^&^&^&^&^");
 
     // step 2: add new request to service
     const sql = `INSERT INTO Service (customerId, title, category, actualcost, maintenanceTime, image, isCommon, issueDescription)
@@ -517,7 +514,7 @@ export const addService = async (req, res) => {
 
     // step 3: add the service into ServiceRequest table
     const serviceId = result.rows[0].id;
-    console.log('serviceId: '+serviceId+'  *^*^*^*^*^*^*^*^*^*^*^*^*^*^');
+    console.log("serviceId: " + serviceId + "  *^*^*^*^*^*^*^*^*^*^*^*^*^*^");
 
     await client.query(
       `insert into ServiceRequest (ServiceID, RequestID)
@@ -535,11 +532,12 @@ export const addService = async (req, res) => {
       [requestId]
     );
     res.json({ message: "Service added successfully", spare: result.rows[0] });
- 
+
     io.emit("newRequest", {
-      role: "customers",  
+      role: "customers",
       id: uuidv4(),
-      message: " Request has been Update by the admin. Please review your requests you can now add Feedback and rating on this srvice."
+      message:
+        " Request has been Update by the admin. Please review your requests you can now add Feedback and rating on this srvice.",
     });
   } catch (err) {
     console.error("Add service error:", err);
